@@ -1,40 +1,31 @@
-let particles = [];
-let attractors = [];
-let mouseAttractor;
-
-function setup() {
-  createCanvas(800, 600);
-
-  for (let i = 0; i < 100; i++) {
-    particles.push(new Particle(random(width), random(height))); 
+class Attractor {
+  constructor(x, y) {
+    this.pos = createVector(x, y); 
+    this.mass = 20; 
   }
-  attractors.push(new Attractor(width / 2, height / 2));
 
-  mouseAttractor = new Attractor(mouseX, mouseY); 
+  attract(particle) {
+    let force = p5.Vector.sub(this.pos, particle.pos);
+    let distance = force.mag();
+    distance = constrain(distance, 5, 25); 
+    force.normalize();
+    let strength = (0.4 * this.mass * particle.mass) / (distance * distance); 
+    force.mult(strength); 
+    return force;
+  }
+
+  display() {
+    fill(255, 0, 0);
+    ellipse(this.pos.x, this.pos.y, 20, 20);
+  }
 }
 
-function draw() {
-  background(0, 50);
-  
-  for (let attractor of attractors) {
-    attractor.display(); 
-  }
+function mousePressed() {
+  attractors.push(new Attractor(mouseX, mouseY));
+}
 
-  mouseAttractor.pos.set(mouseX, mouseY); 
-  mouseAttractor.display(); 
-  
-  for (let particle of particles) {
-    particle.applyForce(createVector(0, 0.05));
-    
-    for (let attractor of attractors) {
-      let force = attractor.attract(particle);
-      particle.applyForce(force);
-    }
-    
-    let mouseForce = mouseAttractor.attract(particle);
-    particle.applyForce(mouseForce);
-    
-    particle.update(); 
-    particle.display(); 
+function mouseReleased() {
+  if (attractors.length > 1) {
+    attractors.pop(); 
   }
 }
